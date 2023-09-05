@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import OAuth from "../components/OAuth";
 
-function SignIn() {
+function ForgotPassword() {
   const [email, setEmail] = useState("");
 
 
@@ -66,4 +66,4 @@ function SignIn() {
   );
 }
 
-export default SignIn;
+export default ForgotPassword;

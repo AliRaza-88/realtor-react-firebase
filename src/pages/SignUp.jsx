@@ -1,13 +1,21 @@
 import React, { useState } from "react";
 import { AiFillEyeInvisible, AiFillEye } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
+import {getAuth, createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
+import {db} from '../firebase'
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { toast } from "react-toastify";
 
-function SignIn() {
+
+function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+    const formData = {name, email, password};
 
   function toggle() {
     if (showPassword === false) {
@@ -15,6 +23,31 @@ function SignIn() {
     } else {
       setShowPassword(false);
     }
+  }
+
+  async function onSubmit(e){
+      e.preventDefault();
+
+      try {
+        const auth = getAuth();
+        const userCredential =await createUserWithEmailAndPassword(auth, email, password);
+        //qk hm name ki input b le rhy hain to name b save krwany k lia firestore db me
+        updateProfile(auth.currentUser, { 
+          displayName: name
+        })
+        const user = userCredential.user; 
+        const formDataCopy = {...formData};
+        delete formDataCopy.password; //db me pw ni dikhana
+        formDataCopy.timestamp = serverTimestamp();   //time dikhany k lia k kis time add hua ye user. db me store hojy ga
+
+        await setDoc(doc(db, "users", user.uid), formDataCopy);
+        navigate("/");
+        // toast.success("Sign up successful")
+      } 
+      catch (error) {
+          
+        toast.error("Something went wrong with the registration")
+      }
   }
   return (
     <section>
@@ -28,7 +61,7 @@ function SignIn() {
           />
         </div>
         <div className="w-full md:w-[67%] lg:w-[40%] lg:ml-20">
-          <form>
+          <form onSubmit={onSubmit}>
             <input
               type="text"
               id="name"
@@ -102,4 +135,4 @@ function SignIn() {
   );
 }
 
-export default SignIn;
+export default SignUp;
